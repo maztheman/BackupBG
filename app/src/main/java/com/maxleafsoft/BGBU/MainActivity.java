@@ -16,9 +16,36 @@ import android.text.Editable;
 import java.util.*;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
+import androidx.fragment.*;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.core.app.*;
+import android.content.pm.PackageManager;
+import android.Manifest;
+import androidx.core.content.ContextCompat;
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission;
+import androidx.activity.ComponentActivity;
 
-public class MainActivity extends Activity implements OnItemSelectedListener
+public class MainActivity extends ComponentActivity implements OnItemSelectedListener
 {
+
+	// Register the permissions callback, which handles the user's response to the
+	// system permissions dialog. Save the return value, an instance of
+	// ActivityResultLauncher, as an instance variable.
+	private ActivityResultLauncher<String> requestPermissionLauncher =
+		registerForActivityResult(new RequestPermission(), isGranted -> {
+			if (isGranted) {
+				// Permission is granted. Continue the action or workflow in your
+				// app.
+				createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
+			} else {
+				// Explain to the user that the feature is unavailable because the
+				// feature requires a permission that the user has denied. At the
+				// same time, respect the user's decision. Don't link to system
+				// settings in an effort to convince the user to change their
+				// decision.
+			}
+		});
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -34,8 +61,25 @@ public class MainActivity extends Activity implements OnItemSelectedListener
 		Spinner spinner = (Spinner)findViewById(R.id.gameDropList);
 		spinner.setOnItemSelectedListener(this);
 		
-		createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
-		
+		if (ContextCompat.checkSelfPermission(
+			this, Manifest.permission.MANAGE_EXTERNAL_STORAGE) ==
+			PackageManager.PERMISSION_GRANTED) {
+			// You can use the API that requires the permission.
+			createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
+		}/*/ else if (shouldShowRequestPermissionRationale(...)) {
+			// In an educational UI, explain to the user why your app requires this
+			// permission for a specific feature to behave as expected, and what
+			// features are disabled if it's declined. In this UI, include a
+			// "cancel" or "no thanks" button that lets the user continue
+			// using your app without granting the permission.
+			showInContextUI(...);
+		} */else {
+			// You can directly ask for the permission.
+			// The registered ActivityResultCallback gets the result of this request.
+			requestPermissionLauncher.launch(
+					Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+		}
+
 		setHelpText();
 	}
 
@@ -210,35 +254,40 @@ public class MainActivity extends Activity implements OnItemSelectedListener
 		Spinner spinner = (Spinner)findViewById(R.id.gameDropList);
 		String saveFolder = "/"; // Default for All selection
 		
-		switch(spinner.getSelectedItem().toString())
+		Object selected = spinner.getSelectedItem();
+
+		if (selected != null)
 		{
-			case "Baldur's Gate (single player)":
-				saveFolder = "save";
-				break;
-			case "Black Pits (single player)":
-				saveFolder = "bpsave";
-				break;
-			case "Baldur's Gate (multiplayer)":
-				saveFolder = "mpsave";
-				break;
-			case "Black Pits (multiplayer)":
-				saveFolder = "mpbpsave";
-				break;
-			case "Custom Characters":
-				saveFolder = "characters";
-				break;
-			case "Custom Portraits":
-				saveFolder = "portraits";
-				break;
-			case "Custom Sounds":
-				saveFolder = "sounds";
-				break;
-			case "Mod Overrides":
-				saveFolder = "override";
-				break;
-			default:
-				// All
-				break;
+			switch(selected.toString())
+			{
+				case "Baldur's Gate (single player)":
+					saveFolder = "save";
+					break;
+				case "Black Pits (single player)":
+					saveFolder = "bpsave";
+					break;
+				case "Baldur's Gate (multiplayer)":
+					saveFolder = "mpsave";
+					break;
+				case "Black Pits (multiplayer)":
+					saveFolder = "mpbpsave";
+					break;
+				case "Custom Characters":
+					saveFolder = "characters";
+					break;
+				case "Custom Portraits":
+					saveFolder = "portraits";
+					break;
+				case "Custom Sounds":
+					saveFolder = "sounds";
+					break;
+				case "Mod Overrides":
+					saveFolder = "override";
+					break;
+				default:
+					// All
+					break;
+			}
 		}
 		
 		return addTrailingSlash(saveFolder);
