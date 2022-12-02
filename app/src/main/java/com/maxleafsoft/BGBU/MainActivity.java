@@ -1,37 +1,36 @@
 package com.maxleafsoft.BGBU;
 
-import android.app.*;
-import android.os.Process;
-import android.os.*;
-import android.view.*;
-import android.widget.*;
-import java.io.*;
-import android.util.Log;
-import java.sql.*;
-import java.lang.Object;
-import android.view.inputmethod.InputMethodManager;
-import android.content.*;
-import android.text.TextWatcher;
-import android.text.Editable;
-import java.util.*;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import androidx.fragment.*;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.core.app.*;
-import android.content.pm.PackageManager;
 import android.Manifest;
-import androidx.core.content.ContextCompat;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.*;
+import android.widget.AdapterView.OnItemSelectedListener;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission;
-import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import org.jetbrains.annotations.NotNull;
+import android.net.Uri;
 
-public class MainActivity extends ComponentActivity implements OnItemSelectedListener
+import java.io.File;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import static android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION;
+
+public class MainActivity extends AppCompatActivity implements OnItemSelectedListener
 {
-
-	// Register the permissions callback, which handles the user's response to the
-	// system permissions dialog. Save the return value, an instance of
-	// ActivityResultLauncher, as an instance variable.
-	private ActivityResultLauncher<String> requestPermissionLauncher =
+	private static final int READ_STORAGE_REQUEST_ID = 13893494;
+	private final ActivityResultLauncher<String> mRequestPermissionLauncher =
 		registerForActivityResult(new RequestPermission(), isGranted -> {
 			if (isGranted) {
 				// Permission is granted. Continue the action or workflow in your
@@ -46,64 +45,130 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 			}
 		});
 
+	// EditTextWacther  Implementation
+	private final TextWatcher mTextEditorWatcher = new TextWatcher() 
+	{
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count, int after)
+		{
+			 
+		}
+
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before, int count)
+		{
+
+		}
+		@Override
+		public void afterTextChanged(Editable s)
+		{
+			setHelpText();
+		}
+	};
+
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
 	{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+		askForPermissions();
 		
-		EditText destPath = (EditText)findViewById(R.id.txtDestPath);
+		EditText destPath = findViewById(R.id.txtDestPath);
 		destPath.setText(getExternalDrive());
 		// Attach TextWatcher to EditText
 		destPath.addTextChangedListener(mTextEditorWatcher);
 		
-		Spinner spinner = (Spinner)findViewById(R.id.gameDropList);
+		Spinner spinner = findViewById(R.id.gameDropList);
 		spinner.setOnItemSelectedListener(this);
-		
-		if (ContextCompat.checkSelfPermission(
-			this, Manifest.permission.MANAGE_EXTERNAL_STORAGE) ==
-			PackageManager.PERMISSION_GRANTED) {
+
+		setHelpText();
+	}
+
+	private void askForPermissions()
+	{
+		if (checkSelfPermission(
+				Manifest.permission.READ_EXTERNAL_STORAGE) ==
+				PackageManager.PERMISSION_GRANTED) {
 			// You can use the API that requires the permission.
 			createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
-		}/*/ else if (shouldShowRequestPermissionRationale(...)) {
+		} else if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
 			// In an educational UI, explain to the user why your app requires this
 			// permission for a specific feature to behave as expected, and what
 			// features are disabled if it's declined. In this UI, include a
 			// "cancel" or "no thanks" button that lets the user continue
 			// using your app without granting the permission.
-			showInContextUI(...);
-		} */else {
-			// You can directly ask for the permission.
-			// The registered ActivityResultCallback gets the result of this request.
-			requestPermissionLauncher.launch(
-					Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+			//showInContextUI(...);
+		} else {
+			mRequestPermissionLauncher.launch(
+					Manifest.permission.READ_EXTERNAL_STORAGE);
 		}
 
-		setHelpText();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			if (Environment.isExternalStorageManager())
+			{
+				createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
+			} else {
+				Intent intent = new Intent();
+				intent.setAction(ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+				Uri uri = Uri.fromParts("package", this.getPackageName(), null);
+				intent.setData(uri);
+				startActivity(intent);
+			}
+		} else {
+			if (checkSelfPermission(
+					Manifest.permission.READ_EXTERNAL_STORAGE) ==
+					PackageManager.PERMISSION_GRANTED) {
+				// You can use the API that requires the permission.
+				createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
+			} else if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+				// In an educational UI, explain to the user why your app requires this
+				// permission for a specific feature to behave as expected, and what
+				// features are disabled if it's declined. In this UI, include a
+				// "cancel" or "no thanks" button that lets the user continue
+				// using your app without granting the permission.
+				//showInContextUI(...);
+			} else {
+				mRequestPermissionLauncher.launch(
+							Manifest.permission.READ_EXTERNAL_STORAGE);
+			}
+		}
+
+
+
 	}
 
-	// EditTextWacther  Implementation
-	private final TextWatcher mTextEditorWatcher = new TextWatcher() 
-	{
-		public void beforeTextChanged(CharSequence s, int start, int count, int after)
-		{
-			 
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions,
+										   @NotNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode == READ_STORAGE_REQUEST_ID) {// If request is cancelled, the result arrays are empty.
+			if (grantResults.length > 0 &&
+					grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				// Permission is granted. Continue the action or workflow
+				// in your app.
+				createGameDropList(new File(GetSdCard() + "Android/data/com.beamdog.baldursgateenhancededition/files/"));
+			} else {
+				// Explain to the user that the feature is unavailable because
+				// the feature requires a permission that the user has denied.
+				// At the same time, respect the user's decision. Don't link to
+				// system settings in an effort to convince the user to change
+				// their decision.
+			}
+			return;
 		}
+		// Other 'case' lines to check for other
+		// permissions this app might request.
+	}
 
-		public void onTextChanged(CharSequence s, int start, int before, int count)
-		{
-
-		}
-		public void afterTextChanged(Editable s)
-		{
-			setHelpText();
-		}
-	};
-	
+	/**
+	 * reset destination path
+	 * @param view component that stores the display of destination path
+	 */
 	public void resetDestination(View view)
 	{
-		EditText destPath = (EditText)findViewById(R.id.txtDestPath);
+		EditText destPath = findViewById(R.id.txtDestPath);
 		destPath.setText(getExternalDrive());
 	}
 	
@@ -120,7 +185,7 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 		// TODO: Implement this method
 	}
 	
-	public void createGameDropList(File sourceLocation)
+	private void createGameDropList(File sourceLocation)
 	{
 		List<String> gameList = new ArrayList<String>();
 		if (sourceLocation.isDirectory())
@@ -128,10 +193,11 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 			//Log.d(sourceLocation.toString(),"src loc is dir");
 			String[] children = sourceLocation.list();
 			String gameString = "All";
-			gameList.add(new String(gameString));
-			for(int i = 0; i < sourceLocation.listFiles().length; i++)
+			gameList.add(gameString);
+			for(int i = 0; i < Objects.requireNonNull(sourceLocation.listFiles()).length; i++)
 			{
 				//Log.d(Integer.toString(i),"in for");
+				assert children != null;
 				if (new File(sourceLocation, children[i]).isDirectory())
 				{
 					//Log.d(children[i].toString(),"src loc is dir");
@@ -147,7 +213,7 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 					sounds - custom sound sets added by user
 					override - small mod files added by user
 					*/
-					switch(children[i].toString().toLowerCase())
+					switch(children[i].toLowerCase())
 					{
 						case "save":
 							gameString = "Baldur's Gate (single player)";
@@ -175,21 +241,21 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 							break;
 		
 					}
-					gameList.add(new String(gameString));
+					gameList.add(gameString);
 				}
 			}
 		}
 	
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-			android.R.layout.simple_spinner_dropdown_item, gameList);
+		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+				android.R.layout.simple_spinner_dropdown_item, gameList);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		
 		// Apply the adapter to the spinner
-		Spinner spinner = (Spinner) findViewById(R.id.gameDropList);
+		Spinner spinner = findViewById(R.id.gameDropList);
 		spinner.setAdapter(adapter);
 	}
 	
-	public void setHelpText()
+	private void setHelpText()
 	{
 		String helpText = "Source Folder: " + GetSdCard() 
 			+ "Android/data/com.beamdog.baldursgateenhancededition/files/" + 
@@ -197,35 +263,37 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 			
 		helpText += getCurrentTimeStamp();
 
-		TextView editText = (TextView)findViewById(R.id.txtHelp);
+		TextView editText = findViewById(R.id.txtHelp);
 		editText.setText(helpText);
 	}
 	
-	public void setHelpText(String sourceFolder)
+	private void setHelpText(String sourceFolder)
 	{
 		String helpText = "Source Folder: " + sourceFolder + 
 			"\r\n\r\nDestination Folder: " + getDestPath();
 			
 		helpText += getCurrentTimeStamp();
 
-		TextView editText = (TextView)findViewById(R.id.txtHelp);
+		TextView editText = findViewById(R.id.txtHelp);
 		editText.setText(helpText);
 	}
-	
+
+	/**
+	 * toggle timestamp usage
+	 * @param view unused
+	 */
 	public void toggleTimeStamp(View view)
 	{
 		setHelpText(getSourcePath());
 	}
 	
 	// gets drive where BG saves are kept
-	public String GetSdCard()
+	private static String GetSdCard()
 	{
-		String srcPath = addTrailingSlash(Environment.getExternalStorageDirectory().toString());
-			
-		return srcPath;
+		return addTrailingSlash(Environment.getExternalStorageDirectory().toString());
 	}
 	
-	public String addTrailingSlash(String path)
+	private static String addTrailingSlash(String path)
 	{
 		if (!path.endsWith("/"))
 		{
@@ -236,22 +304,22 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 	}
 	
 	// tries to get external storage (physicsl SD card)
-	public String getExternalDrive()
+	private String getExternalDrive()
 	{
 		String extDrive = Environment.getExternalStorageDirectory().toString();
 		File file = new File("/storage/extSdCard/");
 		
 		if (file.isDirectory())
 		{
-			extDrive = file.getPath().toString();
+			extDrive = file.getPath();
 		}
 
 		return addTrailingSlash(extDrive);
 	}
 	
-	public String getSaveFolder()
+	private String getSaveFolder()
 	{	
-		Spinner spinner = (Spinner)findViewById(R.id.gameDropList);
+		Spinner spinner = findViewById(R.id.gameDropList);
 		String saveFolder = "/"; // Default for All selection
 		
 		Object selected = spinner.getSelectedItem();
@@ -295,7 +363,7 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 	
 	public String getDestPath()
 	{
-		EditText editText = (EditText)findViewById(R.id.txtDestPath);
+		EditText editText = findViewById(R.id.txtDestPath);
 		String baseDestPath = editText.getText().toString();
 		String destPath = addTrailingSlash(baseDestPath) + "backups/baldur's gate/";
 		
@@ -327,9 +395,10 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 		return sourcePath;
 	}
 
+	@SuppressLint("SetTextI18n")
 	public void backupFolder(View view)
 	{
-		TextView editText = (TextView)findViewById(R.id.txtStatus);
+		TextView editText = findViewById(R.id.txtStatus);
 		editText.setText("");
 		editText.setEnabled(false);
 		
@@ -352,11 +421,11 @@ public class MainActivity extends ComponentActivity implements OnItemSelectedLis
 	public String getCurrentTimeStamp()
 	{
 		String ts = "Undated/"; // Default if toggle is Off
-		Switch toggle = (Switch) findViewById(R.id.swtchTimeStamp);
+		SwitchCompat toggle = findViewById(R.id.swtchTimeStamp);
 
 		if (toggle.isChecked())
 		{
-			Long time = System.currentTimeMillis();
+			long time = System.currentTimeMillis();
 			Timestamp tsTemp = new Timestamp(time);
 			ts = "Dated/" + tsTemp.toString().replace(':',' ').replace('.',' ');
 		}

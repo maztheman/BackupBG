@@ -14,27 +14,8 @@ plugins {
  */
 
 android {
-
-    /**
-     * The app's namespace. Used primarily to access app resources.
-     */
-
     namespace 'com.maxleafsoft.BGBU'
-
-    /**
-     * compileSdkVersion specifies the Android API level Gradle should use to
-     * compile your app. This means your app can use the API features included in
-     * this API level and lower.
-     */
-
-    compileSdkVersion 33
-
-    /**
-     * The defaultConfig block encapsulates default settings and entries for all
-     * build variants, and can override some attributes in main/AndroidManifest.xml
-     * dynamically from the build system. You can configure product flavors to override
-     * these values for different versions of your app.
-     */
+    compileSdk = Integer.parseInt("${useSdkVersion}")
 
     defaultConfig {
 
@@ -42,10 +23,10 @@ android {
         applicationId 'com.maxleafsoft.BGBU'
 
         // Defines the minimum API level required to run the app.
-        minSdkVersion 16
+        minSdkVersion 23
 
         // Specifies the API level used to test the app.
-        targetSdkVersion 33
+        targetSdkVersion "${useSdkVersion}"
 
         // Defines the version number of your app.
         versionCode 1
@@ -89,7 +70,7 @@ android {
      * and assign each flavor to a flavor dimension.
      */
 
-    flavorDimensions "tier"
+    /*flavorDimensions "tier"
     productFlavors {
         free {
             dimension "tier"
@@ -100,7 +81,7 @@ android {
             dimension "tier"
             applicationId 'com.maxleafsoft.BGBU'
         }
-    }
+    }*/
 }
 
 /**
@@ -114,7 +95,7 @@ dependencies {
     implementation "androidx.fragment:fragment:$fragment_version"
     // Java language implementation
     implementation "androidx.activity:activity:$activity_version"
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
     // Java language implementation
     implementation "androidx.core:core:$core_version"
 }

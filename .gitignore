@@ -1,6 +1,6 @@
 .gradle/
-/build
-/bin
-/gen
-/obj
-/libs/*/*.so
+build/
+bin/
+gen/
+obj/
+libs/*/*.so

@@ -10,18 +10,18 @@
             "name": "Android launch",
             "appSrcRoot": "${workspaceRoot}/app/src/main",
             "preLaunchTask": "run gradle",
-            "apkFile": "${workspaceRoot}/app/build/outputs/apk/free/debug/app-free-debug.apk",
+            "apkFile": "${workspaceRoot}/app/build/outputs/apk/debug/app-debug.apk",
             "adbPort": 5037,
             "autoStartADB": true,
             //"manifestFile": "${workspaceRoot}/app/src/main/AndroidManifest.xml",
             "pmInstallArgs": ["-r"],
-            "amStartArgs": [
+            /*"amStartArgs": [
                 "-D",
                 "--activity-brought-to-front",
                 "-a android.intent.action.MAIN",
                 "-c android.intent.category.LAUNCHER",
                 "-n package.name/launch.activity"
-            ],
+            ],*/
            // "launchActivity": "com.maxleafsoft.BGBU.MainActivity",
             "trace": true
         },

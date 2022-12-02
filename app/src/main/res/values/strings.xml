@@ -2,4 +2,11 @@
 <resources>
     <string name="app_name">backupBG</string>
 	<string name="title_activity_restore_from_backup">Restore</string>
+    <string name="destination_folder_includes_time_stamp">Destination Folder Includes Time Stamp</string>
+    <string name="status">status</string>
+    <string name="back_up">Back Up</string>
+    <string name="restore">Restore</string>
+    <string name="select_saves_to_back_up">Select Saves to Back Up</string>
+    <string name="base_destination">Base Destination</string>
+    <string name="reset_basedestination">Reset BaseDestination</string>
 </resources>
